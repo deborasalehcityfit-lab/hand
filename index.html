@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1C2530">
+  <meta name="description" content="Lacak lengan, tangan, dan jari memakai kamera HP. Semua pemrosesan terjadi di perangkat.">
+  <title>Motion Lab</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1 class="brand">Motion Lab</h1>
+      <p class="status" id="status" data-tone="idle" role="status">Siap</p>
+    </header>
+
+    <main class="layout">
+      <section class="stage" aria-label="Kamera dan overlay pelacakan">
+        <video id="video" playsinline muted autoplay aria-hidden="true"></video>
+        <canvas id="view" width="640" height="480" aria-label="Gambar kamera dengan kerangka tangan dan lengan"></canvas>
+
+        <div class="intro" id="intro">
+          <h2 id="intro-title">Arahkan kamera ke tubuh bagian atas</h2>
+          <p id="intro-text">Bahu, siku, dan kedua tangan sebaiknya terlihat. Semua pemrosesan terjadi di perangkat ini; video tidak dikirim ke mana pun.</p>
+          <p class="intro-error" id="intro-error" hidden></p>
+          <div class="intro-actions">
+            <button type="button" class="btn btn-primary" id="intro-start">Mulai kamera</button>
+            <a class="link" id="intro-alt" href="?demo=1">Coba mode demo tanpa kamera</a>
+          </div>
+        </div>
+
+        <div class="loading" id="loading" hidden>
+          <p id="loading-text">Memuat…</p>
+          <div class="progress"><i id="loading-bar"></i></div>
+          <p class="loading-note">Model hanya diunduh sekali, lalu disimpan untuk pemakaian berikutnya.</p>
+        </div>
+
+        <div class="calib" id="calib" hidden>
+          <p id="calib-text"></p>
+          <div class="progress"><i id="calib-bar"></i></div>
+          <button type="button" class="btn btn-quiet" id="calib-cancel">Batal</button>
+        </div>
+      </section>
+
+      <section class="readouts" id="readouts" aria-label="Sudut siku">
+        <div class="gauge" data-side="Left">
+          <div class="dial">
+            <svg viewBox="0 0 120 66" aria-hidden="true">
+              <path class="track" d="M 10 60 A 50 50 0 0 1 110 60"></path>
+              <path class="value" d=""></path>
+              <line class="tick tick-bent"></line>
+              <line class="tick tick-straight"></line>
+            </svg>
+            <p class="deg">—</p>
+          </div>
+          <p class="cap">Siku kiri</p>
+          <p class="sub">belum mulai</p>
+        </div>
+        <div class="gauge" data-side="Right">
+          <div class="dial">
+            <svg viewBox="0 0 120 66" aria-hidden="true">
+              <path class="track" d="M 10 60 A 50 50 0 0 1 110 60"></path>
+              <path class="value" d=""></path>
+              <line class="tick tick-bent"></line>
+              <line class="tick tick-straight"></line>
+            </svg>
+            <p class="deg">—</p>
+          </div>
+          <p class="cap">Siku kanan</p>
+          <p class="sub">belum mulai</p>
+        </div>
+        <p class="readout-note">Sudut dalam siku di gambar: 180° berarti lurus. Garis kecil menandai ambang tekuk dan lurus untuk hitungan siklus.</p>
+      </section>
+
+      <section class="panel" aria-label="Detail pengukuran">
+        <article class="card hand-card empty" id="hand-0">
+          <header><span class="side-chip">Slot 1</span><strong class="gesture">Tidak ada tangan</strong></header>
+          <p class="meta">Tunjukkan telapak dan kelima ujung jari.</p>
+          <table class="fingers">
+            <thead><tr><th scope="col">Jari</th><th scope="col" class="num">Tekuk</th><th scope="col">Lengkung</th><th scope="col" class="num">Ujung px/s</th><th scope="col"><span class="sr">Lurus</span></th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p class="foot"></p>
+        </article>
+
+        <article class="card hand-card empty" id="hand-1">
+          <header><span class="side-chip">Slot 2</span><strong class="gesture">Tidak ada tangan</strong></header>
+          <p class="meta">Tunjukkan telapak dan kelima ujung jari.</p>
+          <table class="fingers">
+            <thead><tr><th scope="col">Jari</th><th scope="col" class="num">Tekuk</th><th scope="col">Lengkung</th><th scope="col" class="num">Ujung px/s</th><th scope="col"><span class="sr">Lurus</span></th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p class="foot"></p>
+        </article>
+
+        <article class="card arm-card" id="arm-Left">
+          <header><h3>Lengan kiri</h3><span class="state">belum mulai</span></header>
+          <dl class="metrics"></dl>
+          <canvas class="spark" aria-label="Grafik sudut siku kiri 8 detik terakhir"></canvas>
+          <p class="foot">Sudut siku 8 detik terakhir. Garis putus-putus = ambang tekuk dan lurus.</p>
+        </article>
+
+        <article class="card arm-card" id="arm-Right">
+          <header><h3>Lengan kanan</h3><span class="state">belum mulai</span></header>
+          <dl class="metrics"></dl>
+          <canvas class="spark" aria-label="Grafik sudut siku kanan 8 detik terakhir"></canvas>
+          <p class="foot">Sudut siku 8 detik terakhir. Garis putus-putus = ambang tekuk dan lurus.</p>
+        </article>
+
+        <article class="card">
+          <header><h3>Sesi</h3>
+            <button type="button" class="btn btn-quiet btn-small" id="toggle-3d" aria-expanded="false" aria-controls="card-3d">Tampilan 3D</button>
+          </header>
+          <dl class="metrics" id="session-stats"><dt>Status</dt><dd>Belum berjalan</dd></dl>
+          <p class="foot">Sudut dan koordinat 3D adalah estimasi model, bukan pengukuran klinis. Satu orang saja.</p>
+        </article>
+
+        <article class="card" id="card-3d" hidden>
+          <header><h3>Tampilan 3D</h3>
+            <span class="seg">
+              <button type="button" class="btn btn-small" data-view3d="hand" aria-pressed="true">Tangan</button>
+              <button type="button" class="btn btn-small" data-view3d="body" aria-pressed="false">Tubuh</button>
+            </span>
+          </header>
+          <canvas id="view3d" class="view3d" aria-label="Kerangka 3D, geser untuk memutar"></canvas>
+          <p class="foot">Geser untuk memutar. Koordinat tangan dan tubuh punya titik asal berbeda, jadi ditampilkan terpisah.</p>
+        </article>
+      </section>
+    </main>
+
+    <nav class="controls" aria-label="Kontrol">
+      <button type="button" class="ctl" id="btn-settings" aria-label="Pengaturan">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        <span>Atur</span>
+      </button>
+      <button type="button" class="ctl" id="btn-flip" aria-label="Ganti kamera depan/belakang">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h11l-3-3M20 15H9l3 3"/></svg>
+        <span>Balik</span>
+      </button>
+      <button type="button" class="shutter" id="btn-start" data-state="idle" aria-label="Mulai kamera"><i></i></button>
+      <button type="button" class="ctl" id="btn-record" data-on="false" aria-label="Rekam video" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/></svg>
+        <span>Video</span>
+      </button>
+      <button type="button" class="ctl" id="btn-snapshot" aria-label="Ambil foto layar" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M9 7l1.5-2.5h3L15 7"/></svg>
+        <span>Foto</span>
+      </button>
+    </nav>
+  </div>
+
+  <dialog id="settings" class="sheet" aria-labelledby="settings-title">
+    <header class="sheet-head">
+      <h2 id="settings-title">Pengaturan</h2>
+      <button type="button" class="btn" id="settings-close">Selesai</button>
+    </header>
+    <p class="note" id="settings-note" hidden>Perubahan kamera, model, dan data berlaku saat sesi berikutnya dimulai.</p>
+    <p class="error" id="settings-error" hidden></p>
+    <form id="settings-form" onsubmit="return false"></form>
+    <section class="about">
+      <div class="install-row" id="install-row" hidden>
+        <button type="button" class="btn btn-primary" data-action="install">Pasang ke layar utama</button>
+      </div>
+      <p id="ios-hint" hidden>Di iPhone: ketuk tombol Bagikan di Safari, lalu “Tambahkan ke Layar Utama”.</p>
+      <p id="app-version"></p>
+    </section>
+  </dialog>
+
+  <dialog id="export" class="sheet" aria-labelledby="export-title">
+    <header class="sheet-head">
+      <h2 id="export-title">Sesi selesai</h2>
+      <button type="button" class="btn" id="export-close">Tutup</button>
+    </header>
+    <p id="export-text"></p>
+    <ul class="export-items" id="export-items"></ul>
+    <p class="note" id="export-empty" hidden>Tidak ada file untuk disimpan dari sesi ini.</p>
+  </dialog>
+
+  <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

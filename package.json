@@ -1,0 +1,12 @@
+{
+  "name": "arm-hand-motion-lab-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Arm, hand and finger motion lab for Android/iPhone browsers (MediaPipe Tasks Web).",
+  "scripts": {
+    "test": "node tests/core.test.mjs",
+    "parity": "node tests/parity/run_parity.mjs",
+    "serve": "python3 -m http.server 8000"
+  }
+}

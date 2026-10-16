@@ -1,0 +1,17 @@
+{
+  "name": "Motion Lab: lengan, tangan, jari",
+  "short_name": "Motion Lab",
+  "description": "Lacak lengan, tangan, dan jari dengan kamera HP. Semua diproses di perangkat.",
+  "lang": "id",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1c2530",
+  "theme_color": "#1c2530",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
